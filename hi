@@ -1,0 +1,163 @@
+key = 'X7qvGpL2JzN5mBYKd8RWaVt91CXsMkF6oTZUb3yPH4fwQE0rDgAlShnJxVoLp78'  -- modify to chat w a different key ig??
+animid = "rbxassetid://17746000371"
+messageLimit = 30 -- adjust to save more msgs or wtv
+function expand(key, length)
+	local expanded = {}
+	local sum = 0
+	for i = 1, length do
+		local k = string.byte(key, (i - 1) % #key + 1)
+		sum = (sum + k) % 256
+		table.insert(expanded, sum)
+	end
+	return expanded
+end
+function encrypt(text, key)
+	local keyStream = expand(key, #text)
+	local encrypted = {}
+	for i = 1, #text do
+		local charCode = string.byte(text, i)
+		local keyCode = keyStream[i]
+		local mixed = bit32.bxor(charCode, keyCode)
+		mixed = (mixed + keyCode) % 256
+		table.insert(encrypted, string.char(mixed))
+	end
+	return table.concat(encrypted)
+end
+function decrypt(text, key)
+	local keyStream = expand(key, #text)
+	local decrypted = {}
+	for i = 1, #text do
+		local charCode = string.byte(text, i)
+		local keyCode = keyStream[i]
+		local mixed = (charCode - keyCode) % 256
+		local original = bit32.bxor(mixed, keyCode)
+		table.insert(decrypted, string.char(original))
+	end
+	return table.concat(decrypted)
+end
+local sg = Instance.new('ScreenGui')
+sg.Parent = game.CoreGui
+local frm = Instance.new("Frame")
+local scr = Instance.new("ScrollingFrame")
+local txt = Instance.new("TextBox")
+local snd = Instance.new("TextButton")
+frm.Name = "frm"
+frm.Parent = sg
+frm.Active = true
+frm.Size = UDim2.new(0, 250, 0, 190)
+frm.BorderColor3 = Color3.new(0, 0, 0)
+frm.BorderSizePixel = 0
+frm.Position = UDim2.new(0.5, 0, 0.5, 0)
+frm.BackgroundColor3 = Color3.new(0, 0, 0)
+frm.AnchorPoint = Vector2.new(0.5,0)
+scr.Name = "scr"
+scr.Parent = frm
+scr.Active = true
+scr.AnchorPoint = Vector2.new(0.5, 0.5)
+scr.Size = UDim2.new(0, 200, 0, 140)
+scr.BorderColor3 = Color3.new(0, 0, 0)
+scr.BorderSizePixel = 0
+scr.Position = UDim2.new(0.5, 0, 0.431578934, 0)
+scr.BackgroundColor3 = Color3.new(1, 1, 1)
+scr.ScrollBarImageColor3 = Color3.new(0, 0, 0)
+scr.CanvasSize = UDim2.new(0,0,6,0)
+txt.Name = "txt"
+txt.TextSize = 14
+txt.Parent = frm
+txt.Size = UDim2.new(0, 144, 0, 26)
+txt.BorderColor3 = Color3.new(0, 0, 0)
+txt.BorderSizePixel = 0
+txt.Position = UDim2.new(0.100000001, 0, 0.83157897, 0)
+txt.BackgroundColor3 = Color3.new(1, 1, 1)
+txt.CursorPosition = -1
+txt.TextColor3 = Color3.new(0, 0, 0)
+txt.Text = ""
+txt.ClearTextOnFocus = false
+txt.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+snd.Name = "snd"
+snd.Parent = frm
+snd.AutoButtonColor = true
+snd.Size = UDim2.new(0, 54, 0, 26)
+snd.BorderColor3 = Color3.new(0, 0, 0)
+snd.BorderSizePixel = 0
+snd.Position = UDim2.new(0.699999988, 0, 0.832000017, 0)
+snd.BackgroundColor3 = Color3.new(1, 1, 1)
+snd.TextColor3 = Color3.new(0, 0, 0)
+snd.Text = "Send"
+snd.TextSize = 14
+snd.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
+local grid = Instance.new('UIGridLayout', scr)
+grid.CellSize = UDim2.new(1,0,0,30)
+grid.FillDirection = Enum.FillDirection.Vertical
+grid.CellPadding = UDim2.new(0,0,0,5)
+local messages = {}
+function message(j)
+	local tx = Instance.new('TextLabel', scr)
+	tx.BackgroundTransparency = 1
+	tx.Text = j
+	tx.TextColor3 = Color3.fromRGB(0, 0, 0)
+	tx.TextXAlignment = Enum.TextXAlignment.Left
+	tx.Parent = scr
+	tx.TextWrapped = true
+	tx.TextSize = 9
+	table.insert(messages, tx)
+	if #messages > messageLimit then
+		messages[1]:Destroy()
+		table.remove(messages, 1)
+	end
+end
+
+mouse=game:GetService('Players').LocalPlayer:GetMouse()
+frm.Draggable = true
+local dragging = false
+frm.DragBegin:Connect(function()
+	dragging = true
+end)
+frm.DragStopped:Connect(function()
+	dragging = false
+end)
+game:GetService('RunService').Heartbeat:connect(function()
+	if dragging then
+		frm.Position = UDim2.new(0,mouse.X,0,mouse.Y)
+	end
+end)
+snd.MouseButton1Down:Connect(function()
+	local ob = encrypt(txt.Text,key)
+	local an = Instance.new('Animation')
+	an.AnimationId = animid..tostring(ob)
+	game:GetService('Players').LocalPlayer.Character.Humanoid:LoadAnimation(an):Play()
+end)
+for _, v in pairs(game:GetService('Players'):GetPlayers())do
+	pcall(function()
+		local h:Humanoid = v.Character.Humanoid
+		h.AnimationPlayed:connect(function(anim:AnimationTrack)
+			if string.find(anim.Animation.AnimationId, animid) then
+				local ms = anim.Animation.AnimationId:sub(#animid + 1)
+				local de = ''
+				if v == game:GetService('Players').LocalPlayer then
+					de = 'You: '..decrypt(ms,key)
+				else
+					de = v.DisplayName..'('..v.Name..'): '..decrypt(ms,key)
+				end
+				message(de)
+			end
+		end)
+	end)
+	v.CharacterAdded:Connect(function(ch)
+		repeat task.wait() until ch:IsDescendantOf(game)
+		pcall(function()
+			local h:Humanoid = ch:WaitForChild('Humanoid')
+			h.AnimationPlayed:connect(function(anim:AnimationTrack)
+				if string.find(anim.Animation.AnimationId, animid) then
+					local ms = anim.Animation.AnimationId:sub(#animid + 1)
+					if v == game:GetService('Players').LocalPlayer then
+						de = 'You: '..decrypt(ms,key)
+					else
+						de = v.DisplayName..'('..v.Name..'): '..decrypt(ms,key)
+					end
+					message(de)
+				end
+			end)
+		end)
+	end)
+end
