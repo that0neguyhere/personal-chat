@@ -11,7 +11,8 @@ local animid = "rbxassetid://17746000371"
 local messageLimit = 30  -- adjust to save more msgs or wtv
 
 local Players = game:GetService("Players")
-local LocalPlayer = Players.LocalPlayer
+local UIS = game:GetService("UserInputService")
+local localplr = Players.LocalPlayer
 
 local function expand(key, length)
 	local expanded = {}
@@ -65,7 +66,9 @@ function nameclr(username)
 	return NAME_COLORS[(sum % #NAME_COLORS) + 1]
 end
 
-local sg = Instance.new("ScreenGui", game.CoreGui)
+local protui = gethui() or cloneref(game:GetService("CoreGui")) or game:GetService("CoreGui") or game:GetService("Players").LocalPlayer.PlayerGui
+
+local sg = Instance.new("ScreenGui", protui)
 sg.Name = "ChatHaxZomg"
 
 local frm = Instance.new("Frame", sg)
@@ -146,8 +149,9 @@ txt.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
 txt.TextColor3 = Color3.new(1, 1, 1)
 txt.TextSize = 14
 txt.ClearTextOnFocus = false
-txt.PlaceholderText = "Type message..."
+txt.PlaceholderText = 'Click or press "." or "/" to chat!'
 txt.Text = ""
+txt.TextScaled = true
 txt.BorderSizePixel = 0
 txt.TextXAlignment = Enum.TextXAlignment.Left
 Instance.new("UICorner", txt).CornerRadius = UDim.new(0, 6)
@@ -184,13 +188,8 @@ function msg(plr, msg)
 	nameLabel.TextXAlignment = Enum.TextXAlignment.Left
 	nameLabel.TextYAlignment = Enum.TextYAlignment.Top
 
-	if plr == LocalPlayer then
-		nameLabel.Text = "You:"
-		nameLabel.TextColor3 = Color3.fromRGB(255, 220, 100)
-	else
-		nameLabel.Text = plr.DisplayName .. " (" .. plr.Name .. "):"
-		nameLabel.TextColor3 = nameclr(plr.Name)
-	end
+	nameLabel.Text = plr.DisplayName .. " (" .. plr.Name .. "):"
+	nameLabel.TextColor3 = nameclr(plr.Name)
 
 	nameLabel.Parent = holder
 
@@ -222,7 +221,26 @@ snd.MouseButton1Down:Connect(function()
 
 	local anim = Instance.new("Animation")
 	anim.AnimationId = animid .. encrypted
-	LocalPlayer.Character.Humanoid:LoadAnimation(anim):Play()
+	localplr.Character.Humanoid:LoadAnimation(anim):Play()
+end)
+
+UIS.InputBegan:Connect(function(input, gp)
+	if gp then return end
+
+	if input.KeyCode == Enum.KeyCode.Period or input.KeyCode == Enum.KeyCode.Slash then
+		txt:CaptureFocus()
+	end
+end)
+
+
+UIS.InputBegan:Connect(function(input, gp)
+	if gp then return end
+
+	if input.KeyCode == Enum.KeyCode.Period or input.KeyCode == Enum.KeyCode.Slash then
+		txt:CaptureFocus()
+	elseif input.KeyCode == Enum.KeyCode.KeypadEnter then
+		
+	end
 end)
 
 local function hookHumanoid(player, hum)
