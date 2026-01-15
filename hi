@@ -1,165 +1,204 @@
-game:GetService('StarterGui'):SetCoreGuiEnabled(Enum.CoreGuiType.Chat, false)
+disablechat = true
 
-key = 'X7qvGpL2JzN5mBYKd8RWaVt91CXsMkF6oTZUb3yPH4fwQE0rDgAlShnJxVoLp78'  -- modify to chat w a different key ig??
-animid = "rbxassetid://17746000371"
-messageLimit = 30 -- adjust to save more msgs or wtv
-function expand(key, length)
+if disablechat == true then
+	game:GetService('StarterGui'):SetCoreGuiEnabled(Enum.CoreGuiType.Chat, false) -- optional
+end
+
+local key = 'X7qvGpL2JzN5mBYKd8RWaVt91CXsMkF6oTZUb3yPH4fwQE0rDgAlShnJxVoLp78' -- think of ts as a lobby twin
+local animid = "rbxassetid://17746000371"
+local messageLimit = 30  -- adjust to save more msgs or wtv
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+local function expand(key, length)
 	local expanded = {}
 	local sum = 0
 	for i = 1, length do
 		local k = string.byte(key, (i - 1) % #key + 1)
 		sum = (sum + k) % 256
-		table.insert(expanded, sum)
+		expanded[i] = sum
 	end
 	return expanded
 end
-function encrypt(text, key)
-	local keyStream = expand(key, #text)
-	local encrypted = {}
+
+local function encrypt(text, key)
+	local ks = expand(key, #text)
+	local out = {}
 	for i = 1, #text do
-		local charCode = string.byte(text, i)
-		local keyCode = keyStream[i]
-		local mixed = bit32.bxor(charCode, keyCode)
-		mixed = (mixed + keyCode) % 256
-		table.insert(encrypted, string.char(mixed))
+		local c = string.byte(text, i)
+		local k = ks[i]
+		out[i] = string.char((bit32.bxor(c, k) + k) % 256)
 	end
-	return table.concat(encrypted)
+	return table.concat(out)
 end
-function decrypt(text, key)
-	local keyStream = expand(key, #text)
-	local decrypted = {}
+
+local function decrypt(text, key)
+	local ks = expand(key, #text)
+	local out = {}
 	for i = 1, #text do
-		local charCode = string.byte(text, i)
-		local keyCode = keyStream[i]
-		local mixed = (charCode - keyCode) % 256
-		local original = bit32.bxor(mixed, keyCode)
-		table.insert(decrypted, string.char(original))
+		local c = string.byte(text, i)
+		local k = ks[i]
+		out[i] = string.char(bit32.bxor((c - k) % 256, k))
 	end
-	return table.concat(decrypted)
+	return table.concat(out)
 end
-local sg = Instance.new('ScreenGui')
-sg.Parent = game.CoreGui
-local frm = Instance.new("Frame")
-local scr = Instance.new("ScrollingFrame")
-local txt = Instance.new("TextBox")
-local snd = Instance.new("TextButton")
-frm.Name = "frm"
-frm.Parent = sg
-frm.Active = true
-frm.Size = UDim2.new(0, 250, 0, 190)
-frm.BorderColor3 = Color3.new(0, 0, 0)
-frm.BorderSizePixel = 0
+
+local NAME_COLORS = {
+	Color3.fromRGB(253, 41, 67),   -- Red
+	Color3.fromRGB(1, 162, 255),   -- Blue
+	Color3.fromRGB(2, 184, 87),    -- Green
+	Color3.fromRGB(255, 170, 0),   -- Orange
+	Color3.fromRGB(170, 85, 255),  -- Purple
+	Color3.fromRGB(255, 102, 204), -- Pink
+	Color3.fromRGB(0, 143, 156),   -- Teal
+}
+
+function nameclr(username)
+	username = string.lower(username)
+	local sum = 0
+	for i = 1, #username do
+		sum += string.byte(username, i)
+	end
+	return NAME_COLORS[(sum % #NAME_COLORS) + 1]
+end
+
+local sg = Instance.new("ScreenGui", game.CoreGui)
+sg.Name = "ChatHaxZomg"
+
+local frm = Instance.new("Frame", sg)
+frm.Size = UDim2.new(0, 300, 0, 220)
 frm.Position = UDim2.new(0.5, 0, 0.5, 0)
-frm.BackgroundColor3 = Color3.new(0, 0, 0)
-frm.AnchorPoint = Vector2.new(0.5,0)
-scr.Name = "scr"
-scr.Parent = frm
-scr.Active = true
-scr.AnchorPoint = Vector2.new(0.5, 0.5)
-scr.Size = UDim2.new(0, 200, 0, 140)
-scr.BorderColor3 = Color3.new(0, 0, 0)
+frm.AnchorPoint = Vector2.new(0.5, 0.5)
+frm.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
+frm.BorderSizePixel = 0
+frm.Active = true
+frm.Draggable = true
+Instance.new("UICorner", frm).CornerRadius = UDim.new(0, 8)
+
+local scr = Instance.new("ScrollingFrame", frm)
+scr.Size = UDim2.new(1, -16, 1, -60)
+scr.Position = UDim2.new(0, 8, 0, 8)
+scr.ScrollBarThickness = 5
+scr.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 scr.BorderSizePixel = 0
-scr.Position = UDim2.new(0.5, 0, 0.431578934, 0)
-scr.BackgroundColor3 = Color3.new(1, 1, 1)
-scr.ScrollBarImageColor3 = Color3.new(0, 0, 0)
-scr.CanvasSize = UDim2.new(0,0,6,0)
-txt.Name = "txt"
+scr.AutomaticCanvasSize = Enum.AutomaticSize.None
+Instance.new("UICorner", scr).CornerRadius = UDim.new(0, 6)
+
+local pad = Instance.new("UIPadding", scr)
+pad.PaddingTop = UDim.new(0, 6)
+pad.PaddingBottom = UDim.new(0, 6)
+pad.PaddingLeft = UDim.new(0, 6)
+pad.PaddingRight = UDim.new(0, 6)
+
+local layout = Instance.new("UIListLayout", scr)
+layout.Padding = UDim.new(0, 6)
+
+layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
+	scr.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 10)
+	scr.CanvasPosition = Vector2.new(0, math.max(0, scr.CanvasSize.Y.Offset - scr.AbsoluteWindowSize.Y))
+end)
+
+local txt = Instance.new("TextBox", frm)
+txt.Size = UDim2.new(1, -80, 0, 30)
+txt.Position = UDim2.new(0, 8, 1, -38)
+txt.Font = Enum.Font.Gotham
+txt.BackgroundColor3 = Color3.fromRGB(40, 40, 40)
+txt.TextColor3 = Color3.new(1, 1, 1)
 txt.TextSize = 14
-txt.Parent = frm
-txt.Size = UDim2.new(0, 144, 0, 26)
-txt.BorderColor3 = Color3.new(0, 0, 0)
-txt.BorderSizePixel = 0
-txt.Position = UDim2.new(0.100000001, 0, 0.83157897, 0)
-txt.BackgroundColor3 = Color3.new(1, 1, 1)
-txt.CursorPosition = -1
-txt.TextColor3 = Color3.new(0, 0, 0)
-txt.Text = ""
 txt.ClearTextOnFocus = false
-txt.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
-snd.Name = "snd"
-snd.Parent = frm
-snd.AutoButtonColor = true
-snd.Size = UDim2.new(0, 54, 0, 26)
-snd.BorderColor3 = Color3.new(0, 0, 0)
-snd.BorderSizePixel = 0
-snd.Position = UDim2.new(0.699999988, 0, 0.832000017, 0)
-snd.BackgroundColor3 = Color3.new(1, 1, 1)
-snd.TextColor3 = Color3.new(0, 0, 0)
+txt.PlaceholderText = "Type message..."
+txt.BorderSizePixel = 0
+Instance.new("UICorner", txt).CornerRadius = UDim.new(0, 6)
+
+local snd = Instance.new("TextButton", frm)
+snd.Size = UDim2.new(0, 60, 0, 30)
+snd.Position = UDim2.new(1, -68, 1, -38)
 snd.Text = "Send"
+snd.Font = Enum.Font.Gotham
 snd.TextSize = 14
-snd.FontFace = Font.new("rbxasset://fonts/families/SourceSansPro.json", Enum.FontWeight.Regular, Enum.FontStyle.Normal)
-local grid = Instance.new('UIGridLayout', scr)
-grid.CellSize = UDim2.new(1,0,0,30)
-grid.FillDirection = Enum.FillDirection.Vertical
-grid.CellPadding = UDim2.new(0,0,0,5)
+snd.BackgroundColor3 = Color3.fromRGB(70, 130, 255)
+snd.TextColor3 = Color3.new(1, 1, 1)
+snd.BorderSizePixel = 0
+Instance.new("UICorner", snd).CornerRadius = UDim.new(0, 6)
+
 local messages = {}
-function message(j)
-	local tx = Instance.new('TextLabel', scr)
-	tx.BackgroundTransparency = 1
-	tx.Text = j
-	tx.TextColor3 = Color3.fromRGB(0, 0, 0)
-	tx.TextXAlignment = Enum.TextXAlignment.Left
-	tx.Parent = scr
-	tx.TextWrapped = true
-	tx.TextSize = 9
-	table.insert(messages, tx)
+
+function msg(plr, msg)
+	local holder = Instance.new("Frame")
+	holder.Size = UDim2.new(1, -4, 0, 0)
+	holder.AutomaticSize = Enum.AutomaticSize.Y
+	holder.BackgroundTransparency = 1
+	holder.Parent = scr
+
+	local hLayout = Instance.new("UIListLayout", holder)
+	hLayout.FillDirection = Enum.FillDirection.Horizontal
+	hLayout.Padding = UDim.new(0, 4)
+
+	local nameLabel = Instance.new("TextLabel")
+	nameLabel.BackgroundTransparency = 1
+	nameLabel.AutomaticSize = Enum.AutomaticSize.XY
+	nameLabel.Font = Enum.Font.GothamBold
+	nameLabel.TextSize = 14
+	nameLabel.TextXAlignment = Enum.TextXAlignment.Left
+	nameLabel.TextYAlignment = Enum.TextYAlignment.Top
+
+	if plr == LocalPlayer then
+		nameLabel.Text = "You:"
+		nameLabel.TextColor3 = Color3.fromRGB(255, 220, 100)
+	else
+		nameLabel.Text = plr.DisplayName .. " (" .. plr.Name .. "):"
+		nameLabel.TextColor3 = nameclr(plr.Name)
+	end
+
+	nameLabel.Parent = holder
+
+	local msgLabel = Instance.new("TextLabel")
+	msgLabel.BackgroundTransparency = 1
+	msgLabel.Size = UDim2.new(1, -nameLabel.AbsoluteSize.X - 6, 0, 0)
+	msgLabel.AutomaticSize = Enum.AutomaticSize.Y
+	msgLabel.TextWrapped = true
+	msgLabel.Font = Enum.Font.Gotham
+	msgLabel.TextSize = 14
+	msgLabel.TextColor3 = Color3.new(1, 1, 1)
+	msgLabel.TextXAlignment = Enum.TextXAlignment.Left
+	msgLabel.TextYAlignment = Enum.TextYAlignment.Top
+	msgLabel.Text = msg
+	msgLabel.Parent = holder
+
+	table.insert(messages, holder)
 	if #messages > messageLimit then
 		messages[1]:Destroy()
 		table.remove(messages, 1)
 	end
 end
 
-mouse=game:GetService('Players').LocalPlayer:GetMouse()
-frm.Draggable = true
-local dragging = false
-frm.DragBegin:Connect(function()
-	dragging = true
-end)
-frm.DragStopped:Connect(function()
-	dragging = false
-end)
-game:GetService('RunService').Heartbeat:connect(function()
-	if dragging then
-		frm.Position = UDim2.new(0,mouse.X,0,mouse.Y)
-	end
-end)
 snd.MouseButton1Down:Connect(function()
-	local ob = encrypt(txt.Text,key)
-	local an = Instance.new('Animation')
-	an.AnimationId = animid..tostring(ob)
-	game:GetService('Players').LocalPlayer.Character.Humanoid:LoadAnimation(an):Play()
+	if txt.Text == "" then return end
+
+	local encrypted = encrypt(txt.Text, key)
+	txt.Text = ""
+
+	local anim = Instance.new("Animation")
+	anim.AnimationId = animid .. encrypted
+	LocalPlayer.Character.Humanoid:LoadAnimation(anim):Play()
 end)
-for _, v in pairs(game:GetService('Players'):GetPlayers())do
-	pcall(function()
-		local h:Humanoid = v.Character.Humanoid
-		h.AnimationPlayed:connect(function(anim:AnimationTrack)
-			if string.find(anim.Animation.AnimationId, animid) then
-				local ms = anim.Animation.AnimationId:sub(#animid + 1)
-				local de = ''
-				if v == game:GetService('Players').LocalPlayer then
-					de = 'You: '..decrypt(ms,key)
-				else
-					de = v.DisplayName..'('..v.Name..'): '..decrypt(ms,key)
-				end
-				message(de)
-			end
-		end)
+
+local function hookHumanoid(player, hum)
+	hum.AnimationPlayed:Connect(function(track)
+		local id = track.Animation.AnimationId
+		if id:sub(1, #animid) == animid then
+			local payload = id:sub(#animid + 1)
+			msg(player, decrypt(payload, key))
+		end
 	end)
-	v.CharacterAdded:Connect(function(ch)
-		repeat task.wait() until ch:IsDescendantOf(game)
-		pcall(function()
-			local h:Humanoid = ch:WaitForChild('Humanoid')
-			h.AnimationPlayed:connect(function(anim:AnimationTrack)
-				if string.find(anim.Animation.AnimationId, animid) then
-					local ms = anim.Animation.AnimationId:sub(#animid + 1)
-					if v == game:GetService('Players').LocalPlayer then
-						de = 'You: '..decrypt(ms,key)
-					else
-						de = v.DisplayName..'('..v.Name..'): '..decrypt(ms,key)
-					end
-					message(de)
-				end
-			end)
-		end)
+end
+
+for _, plr in ipairs(Players:GetPlayers()) do
+	if plr.Character and plr.Character:FindFirstChild("Humanoid") then
+		hookHumanoid(plr, plr.Character.Humanoid)
+	end
+	plr.CharacterAdded:Connect(function(c)
+		hookHumanoid(plr, c:WaitForChild("Humanoid"))
 	end)
 end
