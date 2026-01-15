@@ -1,3 +1,5 @@
+--loadstring(game:HttpGet("https://raw.githubusercontent.com/that0neguyhere/personal-chat/refs/heads/main/hi"))()
+
 disablechat = true
 
 if disablechat == true then
@@ -73,8 +75,45 @@ frm.AnchorPoint = Vector2.new(0.5, 0.5)
 frm.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 frm.BorderSizePixel = 0
 frm.Active = true
-frm.Draggable = true
 Instance.new("UICorner", frm).CornerRadius = UDim.new(0, 8)
+
+local UIS = game:GetService("UserInputService")
+function dragify(Frame)
+	dragToggle = nil
+	dragSpeed = 0.15
+	dragInput = nil
+	dragStart = nil
+	dragPos = nil
+	function updateInput(input)
+		Delta = input.Position - dragStart
+		Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + Delta.X, startPos.Y.Scale, startPos.Y.Offset + Delta.Y)
+		game:GetService("TweenService"):Create(Frame, TweenInfo.new(0.15), {Position = Position}):Play()
+	end
+	Frame.InputBegan:Connect(function(input)
+		if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and UIS:GetFocusedTextBox() == nil then
+			dragToggle = true
+			dragStart = input.Position
+			startPos = Frame.Position
+			input.Changed:Connect(function()
+				if input.UserInputState == Enum.UserInputState.End then
+					dragToggle = false
+				end
+			end)
+		end
+	end)
+	Frame.InputChanged:Connect(function(input)
+		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+			dragInput = input
+		end
+	end)
+	game:GetService("UserInputService").InputChanged:Connect(function(input)
+		if input == dragInput and dragToggle then
+			updateInput(input)
+		end
+	end)
+end
+dragify(frm)
+
 
 local scr = Instance.new("ScrollingFrame", frm)
 scr.Size = UDim2.new(1, -16, 1, -60)
@@ -108,7 +147,9 @@ txt.TextColor3 = Color3.new(1, 1, 1)
 txt.TextSize = 14
 txt.ClearTextOnFocus = false
 txt.PlaceholderText = "Type message..."
+txt.Text = ""
 txt.BorderSizePixel = 0
+txt.TextXAlignment = Enum.TextXAlignment.Left
 Instance.new("UICorner", txt).CornerRadius = UDim.new(0, 6)
 
 local snd = Instance.new("TextButton", frm)
