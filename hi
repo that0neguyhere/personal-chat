@@ -1,3 +1,5 @@
+game:GetService('StarterGui'):SetCoreGuiEnabled(Enum.CoreGuiType.Chat, false)
+
 key = 'X7qvGpL2JzN5mBYKd8RWaVt91CXsMkF6oTZUb3yPH4fwQE0rDgAlShnJxVoLp78'  -- modify to chat w a different key ig??
 animid = "rbxassetid://17746000371"
 messageLimit = 30 -- adjust to save more msgs or wtv
