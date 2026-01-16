@@ -197,7 +197,7 @@ crn3.Parent = snd
 
 local messages = {}
 
-function msg(plr, msg)
+function msg(plr, message)
 	local holder = Instance.new("Frame")
 	holder.Size = UDim2.new(1, -4, 0, 0)
 	holder.AutomaticSize = Enum.AutomaticSize.Y
@@ -216,10 +216,8 @@ function msg(plr, msg)
 	nameLabel.TextSize = 14
 	nameLabel.TextXAlignment = Enum.TextXAlignment.Left
 	nameLabel.TextYAlignment = Enum.TextYAlignment.Top
-
 	nameLabel.Text = plr.DisplayName .. "(@" .. plr.Name .. "):"
 	nameLabel.TextColor3 = nameclr(plr.Name)
-
 	nameLabel.Parent = holder
 
 	local msgLabel = Instance.new("TextLabel")
@@ -232,8 +230,23 @@ function msg(plr, msg)
 	msgLabel.TextColor3 = Color3.new(1, 1, 1)
 	msgLabel.TextXAlignment = Enum.TextXAlignment.Left
 	msgLabel.TextYAlignment = Enum.TextYAlignment.Top
-	msgLabel.Text = msg
+	msgLabel.Text = ""
 	msgLabel.Parent = holder
+
+	spawn(function()
+		local sound = Instance.new("Sound")
+		sound.SoundId = "rbxassetid://2347859197"
+		sound.Volume = 1
+		sound.Parent = msgLabel
+
+		for i = 1, #message do
+			msgLabel.Text = message:sub(1, i)
+			sound:Play()
+			task.wait(0.05)
+		end
+
+		sound:Destroy()
+	end)
 
 	table.insert(messages, holder)
 	if #messages > messageLimit then
