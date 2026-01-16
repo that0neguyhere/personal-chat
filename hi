@@ -1,17 +1,57 @@
+--[[
+TODO:
+1. add a button like delta where it opens the gui and then add a minimize button inside the gui which makes the delta-like button appear and closes the ui (the button is also draggable obviously (dont use uidragdetector for this as it makes the button functionality not work))
+2. make a toggle button for chat so if you want to talk in actual chat to someone who actually can see and send messages in your age group you can toggle the actual chat
+3. check out source code for nameless admin by itseverydayyou to see how to make a gui not detected by most anti cheats
+4. if adding images learn how to use the getcustomasset exploit function if available on the executor else fallback to image id (prevents coregui checking through image ids that aren't originally in coregui these types of checks are usually found in anti cheats)
+5. add custom commands like: c/clear (clears chat on your client) c/dance<1-5+> (uses ugc emotes so r15 only) c/linkcmds (runs my linked cmds which i will update to be able to be used with this soon) c/me/<message> (literaly just the classic /me <message> command brought back because it was pretty funny to use and see back then) c/help (displays all commands etc) c/rj,rejoin (makes you rejoin the server) c/sh,shop,serverhop (makes you server hop into a different server (check nameless admin source code to learn how to properly make this work)) c/laugh (uses ugc emotes so r15 only) c/point (uses ugc emotes so r15 only) c/fling/<playername> (just flings a player because why not) c/sit (makes you sit) etc
+<num>. add more todo list stuff if you want
+]]
+
 --loadstring(game:HttpGet("https://raw.githubusercontent.com/that0neguyhere/personal-chat/refs/heads/main/hi"))()
+
+--[[
+Awesome & ca3r's Age Verification Bypasser Version 1.0.0.
+Commands exist now.
+
+type "/e random" for a random emote. (this includes the laughing, waving, cheering and laughing emotes.)
+
+--DANCES
+
+type "/e dance1" for the first dance.
+type "/e dance2" for the second dance.
+type "/e dance3" for the third dance.
+
+--EXPRESSIONS
+
+vvv these ones loop too!
+type "/e wave" to wave at people.
+type "/e cheer" to cheer for someone.
+type "/e point" to point at something.
+type "/e laugh" to bully someone.
+^^^ these ones loop too!
+
+--ADJUSTMENTS
+
+type "/spd [number]" near the emotes to adjust the speed.
+]]
 
 disablechat = true
 
-if disablechat == true then
-	game:GetService('StarterGui'):SetCoreGuiEnabled(Enum.CoreGuiType.Chat, false) -- optional
+local cloneref = cloneref or function(...) return ... end
+
+local STG = cloneref(game:GetService("StarterGui"))
+
+if disablechat == true then -- instead of doing this add an option to toggle chat in the gui
+	--STG:SetCoreGuiEnabled(Enum.CoreGuiType.Chat, false) -- optional
 end
 
 local key = 'X7qvGpL2JzN5mBYKd8RWaVt91CXsMkF6oTZUb3yPH4fwQE0rDgAlShnJxVoLp78' -- think of ts as a lobby twin
 local animid = "rbxassetid://17746000371"
-local messageLimit = 30  -- adjust to save more msgs or wtv
+local messageLimit = 500  -- adjust to save more msgs or wtv (this is a better number so the chat history isnt too long or too short because 30 was way too short and seeing most chat messages is key if someone forgets a ton like me - e god)
 
-local Players = game:GetService("Players")
-local UIS = game:GetService("UserInputService")
+local Players = cloneref(game:GetService("Players"))
+local UIS = cloneref(game:GetService("UserInputService"))
 local localplr = Players.LocalPlayer
 
 local function expand(key, length)
@@ -66,82 +106,62 @@ function nameclr(username)
 	return NAME_COLORS[(sum % #NAME_COLORS) + 1]
 end
 
-local protui = gethui() or cloneref(game:GetService("CoreGui")) or game:GetService("CoreGui") or game:GetService("Players").LocalPlayer.PlayerGui
+local protui = (gethui and gethui()) or cloneref(game:GetService("CoreGui")) or cloneref(Players.LocalPlayer:WaitForChild("PlayerGui"))
 
-local sg = Instance.new("ScreenGui", protui)
-sg.Name = "ChatHaxZomg"
+local sg = Instance.new("ScreenGui")
+sg.Name = tostring(math.random())
+sg.Parent = protui
 
-local frm = Instance.new("Frame", sg)
+local frm = Instance.new("Frame")
 frm.Size = UDim2.new(0, 300, 0, 220)
 frm.Position = UDim2.new(0.5, 0, 0.5, 0)
 frm.AnchorPoint = Vector2.new(0.5, 0.5)
 frm.BackgroundColor3 = Color3.fromRGB(20, 20, 20)
 frm.BorderSizePixel = 0
 frm.Active = true
-Instance.new("UICorner", frm).CornerRadius = UDim.new(0, 8)
+frm.Parent = sg
 
-local UIS = game:GetService("UserInputService")
-function dragify(Frame)
-	dragToggle = nil
-	dragSpeed = 0.15
-	dragInput = nil
-	dragStart = nil
-	dragPos = nil
-	function updateInput(input)
-		Delta = input.Position - dragStart
-		Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + Delta.X, startPos.Y.Scale, startPos.Y.Offset + Delta.Y)
-		game:GetService("TweenService"):Create(Frame, TweenInfo.new(0.15), {Position = Position}):Play()
-	end
-	Frame.InputBegan:Connect(function(input)
-		if (input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch) and UIS:GetFocusedTextBox() == nil then
-			dragToggle = true
-			dragStart = input.Position
-			startPos = Frame.Position
-			input.Changed:Connect(function()
-				if input.UserInputState == Enum.UserInputState.End then
-					dragToggle = false
-				end
-			end)
-		end
-	end)
-	Frame.InputChanged:Connect(function(input)
-		if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
-			dragInput = input
-		end
-	end)
-	game:GetService("UserInputService").InputChanged:Connect(function(input)
-		if input == dragInput and dragToggle then
-			updateInput(input)
-		end
-	end)
-end
-dragify(frm)
+local crn = Instance.new("UICorner")
+crn.CornerRadius = UDim.new(0, 8)
+crn.Parent = frm
 
+local dragify = Instance.new("UIDragDetector") -- changed to this since its latest roblox tech (add back actual function because i messed up and removed it due to not thinking it could be used after this when obviously it can be used for the delta-like button)
+dragify.Parent = frm
 
-local scr = Instance.new("ScrollingFrame", frm)
+local scr = Instance.new("ScrollingFrame")
 scr.Size = UDim2.new(1, -16, 1, -60)
 scr.Position = UDim2.new(0, 8, 0, 8)
 scr.ScrollBarThickness = 5
 scr.BackgroundColor3 = Color3.fromRGB(30, 30, 30)
 scr.BorderSizePixel = 0
 scr.AutomaticCanvasSize = Enum.AutomaticSize.None
-Instance.new("UICorner", scr).CornerRadius = UDim.new(0, 6)
+scr.Parent = frm
 
-local pad = Instance.new("UIPadding", scr)
+local env = (getgenv and getgenv()) or _G or shared
+
+env.ScrollingFrameForChatRoom = scr -- for when i update my linked cmds
+
+local crn = Instance.new("UICorner")
+crn.CornerRadius = UDim.new(0, 6)
+crn.Parent = scr
+
+local pad = Instance.new("UIPadding")
 pad.PaddingTop = UDim.new(0, 6)
 pad.PaddingBottom = UDim.new(0, 6)
 pad.PaddingLeft = UDim.new(0, 6)
 pad.PaddingRight = UDim.new(0, 6)
+pad.Parent = scr
 
-local layout = Instance.new("UIListLayout", scr)
+local layout = Instance.new("UIListLayout")
 layout.Padding = UDim.new(0, 6)
+layout.Parent = scr
 
 layout:GetPropertyChangedSignal("AbsoluteContentSize"):Connect(function()
 	scr.CanvasSize = UDim2.new(0, 0, 0, layout.AbsoluteContentSize.Y + 10)
 	scr.CanvasPosition = Vector2.new(0, math.max(0, scr.CanvasSize.Y.Offset - scr.AbsoluteWindowSize.Y))
 end)
 
-local txt = Instance.new("TextBox", frm)
+local txt = Instance.new("TextBox")
 txt.Size = UDim2.new(1, -80, 0, 30)
 txt.Position = UDim2.new(0, 8, 1, -38)
 txt.Font = Enum.Font.Gotham
@@ -154,9 +174,13 @@ txt.Text = ""
 txt.TextScaled = true
 txt.BorderSizePixel = 0
 txt.TextXAlignment = Enum.TextXAlignment.Left
-Instance.new("UICorner", txt).CornerRadius = UDim.new(0, 6)
+txt.Parent = frm
 
-local snd = Instance.new("TextButton", frm)
+local crn2 = Instance.new("UICorner")
+crn2.CornerRadius = UDim.new(0, 6)
+crn2.Parent = txt
+
+local snd = Instance.new("TextButton")
 snd.Size = UDim2.new(0, 60, 0, 30)
 snd.Position = UDim2.new(1, -68, 1, -38)
 snd.Text = "Send"
@@ -165,7 +189,11 @@ snd.TextSize = 14
 snd.BackgroundColor3 = Color3.fromRGB(70, 130, 255)
 snd.TextColor3 = Color3.new(1, 1, 1)
 snd.BorderSizePixel = 0
-Instance.new("UICorner", snd).CornerRadius = UDim.new(0, 6)
+snd.Parent = frm
+
+local crn3 = Instance.new("UICorner")
+crn3.CornerRadius = UDim.new(0, 6)
+crn3.Parent = snd
 
 local messages = {}
 
@@ -176,9 +204,10 @@ function msg(plr, msg)
 	holder.BackgroundTransparency = 1
 	holder.Parent = scr
 
-	local hLayout = Instance.new("UIListLayout", holder)
+	local hLayout = Instance.new("UIListLayout")
 	hLayout.FillDirection = Enum.FillDirection.Horizontal
 	hLayout.Padding = UDim.new(0, 4)
+	hLayout.Parent = holder
 
 	local nameLabel = Instance.new("TextLabel")
 	nameLabel.BackgroundTransparency = 1
@@ -188,7 +217,7 @@ function msg(plr, msg)
 	nameLabel.TextXAlignment = Enum.TextXAlignment.Left
 	nameLabel.TextYAlignment = Enum.TextYAlignment.Top
 
-	nameLabel.Text = plr.DisplayName .. " (" .. plr.Name .. "):"
+	nameLabel.Text = plr.DisplayName .. "(@" .. plr.Name .. "):"
 	nameLabel.TextColor3 = nameclr(plr.Name)
 
 	nameLabel.Parent = holder
@@ -213,33 +242,157 @@ function msg(plr, msg)
 	end
 end
 
-snd.MouseButton1Down:Connect(function()
-	if txt.Text == "" then return end
+function setanim(char, state)
+	local animate = char:FindFirstChild("Animate")
+	if animate then
+		animate.Disabled = not state
+	end
+end
 
-	local encrypted = encrypt(txt.Text, key)
+function prsspd(text)
+	local speed = 1
+	local spd = string.match(text, "/spd%s*([%d%.%-]+)")
+	if spd then
+		local n = tonumber(spd)
+		if n and n > 0 then
+			speed = n
+		end
+	end
+	return speed
+end
+
+function strspd(text)
+	return (string.gsub(text, "/spd%s*[%d%.%-]+", "")):gsub("%s+$", "")
+end
+
+snd.MouseButton1Down:Connect(function()
+	local Char = localplr.Character
+	if not Char then return end
+
+	local hum = Char:FindFirstChildOfClass("Humanoid")
+	if not hum or txt.Text == "" then return end
+
+	local rawText = txt.Text
+	local speed = prsspd(rawText)
+	local text = strspd(rawText)
+
 	txt.Text = ""
 
+	setanim(Char, true)
+
+	if hum.RigType == Enum.HumanoidRigType.R6 then
+		local danceId
+
+		local R6_EMOTES = {
+			"rbxassetid://132546884",
+			"rbxassetid://160934376",
+			"rbxassetid://160934593",
+			"rbxassetid://128777973",
+			"rbxassetid://129423030",
+			"rbxassetid://128853357",
+			"rbxassetid://129423131",
+		}
+
+		if text == "/e random" then
+			danceId = R6_EMOTES[math.random(#R6_EMOTES)]
+		elseif text == "/e dance1" then
+			danceId = R6_EMOTES[1]
+		elseif text == "/e dance2" then
+			danceId = R6_EMOTES[2]
+		elseif text == "/e dance3" then
+			danceId = R6_EMOTES[3]
+		elseif text == "/e wave" then
+			danceId = R6_EMOTES[4]
+		elseif text == "/e cheer" then
+			danceId = R6_EMOTES[5]
+		elseif text == "/e point" then
+			danceId = R6_EMOTES[6]
+		elseif text == "/e laugh" then
+			danceId = R6_EMOTES[7]
+		end
+
+		if danceId then
+			setanim(Char, false)
+
+			for _, v in ipairs(hum:GetPlayingAnimationTracks()) do
+				v:Stop(0)
+			end
+
+			local anim = Instance.new("Animation")
+			anim.AnimationId = danceId
+
+			local playing = true
+			local track
+
+			local function play()
+				if not playing then return end
+				track = hum:LoadAnimation(anim)
+				track.Priority = Enum.AnimationPriority.Action
+				track:Play()
+				track:AdjustSpeed(speed)
+
+				track.Stopped:Once(function()
+					if playing then
+						play()
+					end
+				end)
+			end
+
+			play()
+
+			local function stop()
+				if not playing then return end
+				playing = false
+				if track then
+					track:Stop()
+				end
+				setanim(Char, true)
+			end
+
+			hum.Running:Connect(function(s)
+				if s > 0 then
+					stop()
+				end
+			end)
+
+			hum.Jumping:Connect(stop)
+
+			return
+		end
+	end
+
+	for _, v in ipairs(hum:GetPlayingAnimationTracks()) do
+		v:Stop(0)
+	end
+
+	setanim(Char, true)
+
+	local encrypted = encrypt(text, key)
 	local anim = Instance.new("Animation")
 	anim.AnimationId = animid .. encrypted
-	localplr.Character.Humanoid:LoadAnimation(anim):Play()
+
+	local track = hum:LoadAnimation(anim)
+	track.Priority = Enum.AnimationPriority.Action
+	track:Play()
 end)
+
+local RSV = cloneref(game:GetService("RunService"))
 
 UIS.InputBegan:Connect(function(input, gp)
 	if gp then return end
 
-	if input.KeyCode == Enum.KeyCode.Period or input.KeyCode == Enum.KeyCode.Slash then
-		txt:CaptureFocus()
-	end
-end)
-
-
-UIS.InputBegan:Connect(function(input, gp)
-	if gp then return end
-
-	if input.KeyCode == Enum.KeyCode.Period or input.KeyCode == Enum.KeyCode.Slash then
+	if input.KeyCode == Enum.KeyCode.Period or input.KeyCode == Enum.KeyCode.Slash then -- why use the keys that roblox uses for emotes and normal chat
+		RSV.RenderStepped:Wait()
 		txt:CaptureFocus()
 	elseif input.KeyCode == Enum.KeyCode.KeypadEnter then
-		
+		if txt.Text == "" then return end
+
+		local encrypted = encrypt(txt.Text, key)
+		txt.Text = ""
+
+		local anim = Instance.new("Animation")
+		anim.AnimationId = animid .. encrypted
+		localplr.Character.Humanoid:LoadAnimation(anim):Play()
 	end
 end)
 
@@ -253,11 +406,29 @@ local function hookHumanoid(player, hum)
 	end)
 end
 
+Players.PlayerAdded:Connect(function(plr) -- bro who makes a script that grabs players for stuff like this but not grab newly joining players - e god
+	plr.CharacterAdded:Connect(function(c)
+		repeat
+			task.wait(0.1)
+		until c:FindFirstChildWhichIsA("Humanoid",true) ~= nil
+		hookHumanoid(plr, c:FindFirstChildWhichIsA("Humanoid",true))
+	end)
+end)
+
 for _, plr in ipairs(Players:GetPlayers()) do
-	if plr.Character and plr.Character:FindFirstChild("Humanoid") then
-		hookHumanoid(plr, plr.Character.Humanoid)
+	if plr.Character then
+		local hum = plr.Character:FindFirstChildWhichIsA("Humanoid", true)
+		if hum then
+			hookHumanoid(plr, hum)
+		end
 	end
 	plr.CharacterAdded:Connect(function(c)
-		hookHumanoid(plr, c:WaitForChild("Humanoid"))
+		local hum
+		repeat
+			task.wait(0.1)
+			hum = c:FindFirstChildWhichIsA("Humanoid", true)
+		until hum
+
+		hookHumanoid(plr, hum)
 	end)
 end
